@@ -35,9 +35,8 @@ button:
 
 i2s_audio:
   - id: i2s_audio_bus
-    i2s_lrclk_pin: GPIO33 # Necesario para el micrófono
-    i2s_bclk_pin: GPIO19  # Necesario para el micrófono
-    # i2s_dout_pin no es necesario si no hay speaker
+    i2s_lrclk_pin: GPIO33
+    i2s_bclk_pin: GPIO19
 
 microphone:
   - platform: i2s_audio
@@ -46,60 +45,58 @@ microphone:
     adc_type: external
     pdm: true
 
-# SECCIÓN SPEAKER ELIMINADA
-# speaker:
-#   - platform: i2s_audio
-#     id: echo_speaker
-#     i2s_dout_pin: GPIO22
-#     dac_type: external
-#     bits_per_sample: 32bit
-#     channel: right
-#     buffer_duration: 60ms
+speaker:
+  - platform: i2s_audio
+    id: echo_speaker
+    i2s_dout_pin: GPIO22
+    dac_type: external
+    bits_per_sample: 32bit
+    channel: right
+    buffer_duration: 60ms
 
-# SECCIÓN MEDIA_PLAYER ELIMINADA
-# media_player:
-#   - platform: speaker
-#     name: None
-#     id: echo_media_player
-#     announcement_pipeline:
-#       speaker: echo_speaker
-#       format: WAV
-#     codec_support_enabled: false
-#     buffer_size: 6000
-#     volume_min: 0.4
-#     files:
-#       - id: timer_finished_wave_file
-#         file: https://github.com/esphome/wake-word-voice-assistants/raw/main/sounds/timer_finished.wav
-#     on_announcement:
-#       - if:
-#           condition:
-#             - microphone.is_capturing:
-#           then:
-#             - if:
-#                 condition:
-#                   lambda: return id(wake_word_engine_location).state == "On device";
-#                 then:
-#                   - micro_wake_word.stop:
-#                 else:
-#                   - voice_assistant.stop:
-#             - script.execute: reset_led
-#       - light.turn_on:
-#           id: led
-#           blue: 100%
-#           red: 0%
-#           green: 0%
-#           brightness: 100%
-#           effect: none
-#     on_idle:
-#       - script.execute: start_wake_word
+media_player:
+  - platform: speaker
+    name: None
+    id: echo_media_player
+    announcement_pipeline:
+      speaker: echo_speaker
+      format: WAV
+    codec_support_enabled: false
+    buffer_size: 6000
+    volume_min: 0.4
+    files:
+      - id: timer_finished_wave_file
+        file: https://github.com/esphome/wake-word-voice-assistants/raw/main/sounds/timer_finished.wav
+    on_announcement:
+      - if:
+          condition:
+            - microphone.is_capturing:
+          then:
+            - if:
+                condition:
+                  lambda: return id(wake_word_engine_location).state == "On device";
+                then:
+                  - micro_wake_word.stop:
+                else:
+                  - voice_assistant.stop:
+            - script.execute: reset_led
+      - light.turn_on:
+          id: led
+          blue: 100%
+          red: 0%
+          green: 0%
+          brightness: 100%
+          effect: none
+    on_idle:
+      - script.execute: start_wake_word
 
 voice_assistant:
   id: va
   microphone: echo_microphone
-  # media_player: echo_media_player # Eliminado ya que no hay media_player
+  media_player: echo_media_player
   noise_suppression_level: 2
   auto_gain: 31dBFS
-  # volume_multiplier: 2.0 # No aplica sin media_player
+  volume_multiplier: 2.0
   on_listening:
     - light.turn_on:
         id: led
@@ -114,14 +111,14 @@ voice_assistant:
         red: 0%
         green: 0%
         effect: "Fast Pulse"
-  # on_tts_start: # Eliminado ya que no hay salida de audio para TTS
-  #   - light.turn_on:
-  #       id: led
-  #       blue: 100%
-  #       red: 0%
-  #       green: 0%
-  #       brightness: 100%
-  #       effect: none
+  on_tts_start:
+    - light.turn_on:
+        id: led
+        blue: 100%
+        red: 0%
+        green: 0%
+        brightness: 100%
+        effect: none
   on_end:
     - delay: 100ms
     - script.execute: start_wake_word
@@ -141,24 +138,29 @@ voice_assistant:
   on_client_disconnected:
     - voice_assistant.stop:
     - micro_wake_word.stop:
-  on_timer_finished: # Modificado para no usar el switch de timbre sonoro, solo visual
+  on_timer_finished:
     - voice_assistant.stop:
     - micro_wake_word.stop:
     - wait_until:
         not:
           microphone.is_capturing:
-    # - switch.turn_on: timer_ringing # Ya no se activa el switch que manejaba el sonido
-    - light.turn_on: # Indicación visual de que el temporizador ha finalizado
+    - switch.turn_on: timer_ringing
+    - light.turn_on:
         id: led
         red: 0%
         green: 100%
         blue: 0%
         brightness: 100%
         effect: "Fast Pulse"
-    - delay: 10s # Mantiene la luz parpadeando por un tiempo
-    - script.execute: reset_led # Vuelve al estado normal del LED
+    - wait_until:
+        - switch.is_off: timer_ringing
+    - light.turn_off: led
+    - switch.turn_off: timer_ringing
 
 binary_sensor:
+  # button does the following:
+  # short click - stop a timer
+  # if no timer then restart either microwakeword or voice assistant continuous
   - platform: gpio
     pin:
       number: GPIO39
@@ -174,9 +176,9 @@ binary_sensor:
         then:
           - if:
               condition:
-                switch.is_on: timer_ringing # Si el switch de "timer_ringing" está encendido (ahora solo visual)
+                switch.is_on: timer_ringing
               then:
-                - switch.turn_off: timer_ringing # Lo apaga
+                - switch.turn_off: timer_ringing
               else:
                 - script.execute: start_wake_word
       - timing:
@@ -242,12 +244,10 @@ script:
                   - light.turn_off: led
   - id: start_wake_word
     then:
-      # Eliminado wait_until para media_player y speaker ya que no existen
-      # - wait_until:
-      #     and:
-      #       - media_player.is_idle:
-      #       - speaker.is_stopped:
-      - delay: 200ms # Pequeña espera para asegurar que los recursos estén libres
+      - wait_until:
+          and:
+            - media_player.is_idle:
+            - speaker.is_stopped:
       - if:
           condition:
             lambda: return id(wake_word_engine_location).state == "On device";
@@ -277,26 +277,36 @@ switch:
       - script.execute: reset_led
     on_turn_off:
       - script.execute: reset_led
-  - platform: template # Este switch ahora solo controlará el estado visual del temporizador
+  - platform: template
     id: timer_ringing
-    name: "Timer Visual Indicator" # Nombre opcional para mayor claridad
     optimistic: true
     restore_mode: ALWAYS_OFF
-    on_turn_on:
-      # Ya no se reproduce sonido
-      - light.turn_on: # Enciende el LED para indicar visualmente el temporizador
-          id: led
-          red: 0%
-          green: 100%
-          blue: 0%
-          brightness: 100%
-          effect: "Fast Pulse"
-      - delay: 15min # Mantiene la indicación visual por 15 minutos o hasta que se apague manualmente
-      - switch.turn_off: timer_ringing
     on_turn_off:
-      # Ya no se detiene el sonido
-      - light.turn_off: led # Apaga el LED cuando el switch se apaga
-      - script.execute: reset_led # Opcional: resetear el LED a su estado de escucha
+      # Turn off the repeat mode and disable the pause between playlist items
+      - lambda: |-
+              id(echo_media_player)
+                ->make_call()
+                .set_command(media_player::MediaPlayerCommand::MEDIA_PLAYER_COMMAND_REPEAT_OFF)
+                .set_announcement(true)
+                .perform();
+              id(echo_media_player)->set_playlist_delay_ms(speaker::AudioPipelineType::ANNOUNCEMENT, 0);
+      # Stop playing the alarm
+      - media_player.stop:
+          announcement: true
+    on_turn_on:
+      # Turn on the repeat mode and pause for 1000 ms between playlist items/repeats
+      - lambda: |-
+            id(echo_media_player)
+              ->make_call()
+              .set_command(media_player::MediaPlayerCommand::MEDIA_PLAYER_COMMAND_REPEAT_ONE)
+              .set_announcement(true)
+              .perform();
+            id(echo_media_player)->set_playlist_delay_ms(speaker::AudioPipelineType::ANNOUNCEMENT, 1000);
+      - media_player.speaker.play_on_device_media_file:
+          media_file: timer_finished_wave_file
+          announcement: true
+      - delay: 15min
+      - switch.turn_off: timer_ringing
 
 select:
   - platform: template
