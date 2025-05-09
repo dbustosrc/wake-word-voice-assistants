@@ -99,7 +99,8 @@ voice_assistant:
   # media_player: echo_media_player # Eliminado ya que no hay media_player
   noise_suppression_level: 2
   auto_gain: 31dBFS
-  # volume_multiplier: 2.0 # No aplica sin media_player
+  volume_multiplier: 2.0 # No aplica sin media_player
+  vad_threshold: 3
   on_listening:
     - light.turn_on:
         id: led
@@ -133,10 +134,10 @@ voice_assistant:
         blue: 0%
         brightness: 100%
         effect: none
-    - delay: 2s
+    - delay: 1s
     - script.execute: reset_led
   on_client_connected:
-    - delay: 2s  # Give the api server time to settle
+    - delay: 1s  # Give the api server time to settle
     - script.execute: start_wake_word
   on_client_disconnected:
     - voice_assistant.stop:
