@@ -99,8 +99,8 @@ voice_assistant:
   # media_player: echo_media_player # Eliminado ya que no hay media_player
   noise_suppression_level: 2
   auto_gain: 31dBFS
-  volume_multiplier: 2.0 # No aplica sin media_player
-  vad_threshold: 3
+  volume_multiplier: 4.0 # No aplica sin media_player
+  vad_threshold: 1
   on_listening:
     - light.turn_on:
         id: led
