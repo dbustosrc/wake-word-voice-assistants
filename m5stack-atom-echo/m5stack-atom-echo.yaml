@@ -16,7 +16,7 @@ esp32:
     version: 4.4.8
     platform_version: 5.4.0
 
-logger:
+#logger:
 api:
 
 ota:
@@ -26,7 +26,7 @@ ota:
 wifi:
   ap:
 
-captive_portal:
+#captive_portal:
 
 button:
   - platform: factory_reset
@@ -159,31 +159,31 @@ voice_assistant:
     - delay: 10s # Mantiene la luz parpadeando por un tiempo
     - script.execute: reset_led # Vuelve al estado normal del LED
 
-binary_sensor:
-  - platform: gpio
-    pin:
-      number: GPIO39
-      inverted: true
-    name: Button
-    disabled_by_default: true
-    entity_category: diagnostic
-    id: echo_button
-    on_multi_click:
-      - timing:
-          - ON for at least 50ms
-          - OFF for at least 50ms
-        then:
-          - if:
-              condition:
-                switch.is_on: timer_ringing # Si el switch de "timer_ringing" está encendido (ahora solo visual)
-              then:
-                - switch.turn_off: timer_ringing # Lo apaga
-              else:
-                - script.execute: start_wake_word
-      - timing:
-          - ON for at least 10s
-        then:
-          - button.press: factory_reset_btn
+#binary_sensor:
+#  - platform: gpio
+#    pin:
+#      number: GPIO39
+#      inverted: true
+#    name: Button
+#    disabled_by_default: true
+#    entity_category: diagnostic
+#    id: echo_button
+#    on_multi_click:
+#      - timing:
+#          - ON for at least 50ms
+#          - OFF for at least 50ms
+#        then:
+#          - if:
+#              condition:
+#                switch.is_on: timer_ringing # Si el switch de "timer_ringing" está encendido (ahora solo visual)
+#              then:
+#                - switch.turn_off: timer_ringing # Lo apaga
+#              else:
+#                - script.execute: start_wake_word
+#      - timing:
+#          - ON for at least 10s
+#        then:
+#          - button.press: factory_reset_btn
 
 light:
   - platform: esp32_rmt_led_strip
