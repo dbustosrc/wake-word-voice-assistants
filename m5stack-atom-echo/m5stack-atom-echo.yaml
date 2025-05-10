@@ -15,8 +15,6 @@ esp32:
     type: esp-idf
     version: 4.4.8
     platform_version: 5.4.0
-    components:
-      - name: esp_adf
 
 #logger:
 api:
