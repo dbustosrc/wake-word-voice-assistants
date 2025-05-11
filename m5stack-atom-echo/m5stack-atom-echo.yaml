@@ -15,8 +15,6 @@ esp32:
     type: esp-idf
     version: 4.4.8
     platform_version: 5.4.0
-    components:
-      - esp_adf
 
 #logger:
 api:
@@ -28,7 +26,6 @@ ota:
 wifi:
   ap:
 
-esp_adf:
 #captive_portal:
 
 button:
@@ -338,3 +335,15 @@ micro_wake_word:
   vad:
   models:
     - model: ${micro_wake_word_model}
+
+external_components:
+  - source: github://pr#5230
+    components:
+      - esp_adf
+  - source: github://pr#5229
+    components:
+      - voice_assistant
+      - api
+    refresh: 0s
+
+esp_adf:
