@@ -17,6 +17,7 @@ esp32:
     platform_version: 5.4.0
     components:
       - esp_adf
+      - name: esp_adf
 
 #logger:
 api:
