@@ -26,6 +26,7 @@ ota:
 wifi:
   ap:
 
+esp_adf:
 #captive_portal:
 
 button:
