@@ -18,8 +18,6 @@ esp32:
 
 api:
 
-esp_adf:
-
 ota:
   - platform: esphome
     id: ota_esphome
@@ -287,3 +285,11 @@ micro_wake_word:
   vad:
   models:
     - model: ${micro_wake_word_model}
+
+external_components:
+  - source: github://pr#5230
+    components:
+      - esp_adf
+    refresh: 0s
+
+esp_adf:
