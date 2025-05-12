@@ -18,6 +18,8 @@ esp32:
 
 api:
 
+esp_adf:
+
 ota:
   - platform: esphome
     id: ota_esphome
