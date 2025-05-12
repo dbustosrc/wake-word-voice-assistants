@@ -56,6 +56,8 @@ media_player:
     name: None
     id: echo_media_player
     announcement_pipeline:
+      speaker: echo_speaker
+      format: WAV
     codec_support_enabled: false
     buffer_size: 2048
     volume_min: 0.4
