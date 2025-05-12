@@ -51,6 +51,12 @@ speaker:
     channel: right
     buffer_duration: 60ms
 
+media_player:
+  - platform: speaker
+    name: None
+    id: echo_media_player
+    volume_min: 0.4
+
 voice_assistant:
   id: va
   microphone: echo_microphone
