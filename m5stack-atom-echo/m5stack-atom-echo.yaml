@@ -41,10 +41,6 @@ microphone:
     pdm: true
     sample_rate: 16000
     correct_dc_offset: true
-    # OPTIMIZACIÓN: Filtro multiplicador directamente en el sensor
-    # Esto asegura que el audio llegue fuerte antes de cualquier proceso.
-    filters:
-      - multiply: 4.0
 
 speaker:
   - platform: i2s_audio
@@ -102,9 +98,9 @@ voice_assistant:
   microphone:
     microphone: echo_microphone
     channels: 0
-    # gain_factor: 4
+    gain_factor: 4
   media_player: echo_media_player
-  noise_suppression_level: 2.0
+  noise_suppression_level: 2
   auto_gain: 31dBFS
   volume_multiplier: 2.0
   on_listening:
