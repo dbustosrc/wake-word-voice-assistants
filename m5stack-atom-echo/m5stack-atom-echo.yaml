@@ -41,6 +41,10 @@ microphone:
     pdm: true
     sample_rate: 16000
     correct_dc_offset: true
+    # OPTIMIZACIÓN: Filtro multiplicador directamente en el sensor
+    # Esto asegura que el audio llegue fuerte antes de cualquier proceso.
+    filters:
+      - multiply: 4.0
 
 speaker:
   - platform: i2s_audio
@@ -51,7 +55,14 @@ speaker:
     sample_rate: 16000
     channel: stereo  # The Echo has poor playback audio quality when using mon audio
     buffer_duration: 60ms
-
+media_player:
+  - platform: speaker
+    id: echo_media_player
+    name: None # Oculto para no ensuciar HA, usado internamente
+    speaker: echo_speaker
+    # OPTIMIZACIÓN 2: Evitar distorsión
+    # No permitas que el volumen sature el pequeño altavoz
+    volume_multiplier: 0.8
 #media_player:
 #  - platform: speaker
 #    name: None
@@ -91,9 +102,11 @@ voice_assistant:
   microphone:
     microphone: echo_microphone
     channels: 0
-    gain_factor: 4
-  noise_suppression_level: 2
+    # gain_factor: 4
+  media_player: echo_media_player
+  noise_suppression_level: 2.0
   auto_gain: 31dBFS
+  volume_multiplier: 2.0
   on_listening:
     - light.turn_on:
         id: led
@@ -106,7 +119,7 @@ voice_assistant:
         id: led
         blue: 100%
         red: 0%
-        green: 0%
+        green: 100%
         effect: "Fast Pulse"
   on_end:
     - script.execute: reset_led
@@ -172,13 +185,18 @@ script:
             - lambda: return id(wake_word_engine_location).state == "On device";
             - switch.is_on: use_listen_light
           then:
-            - light.turn_on:
-                id: led
-                red: 100%
-                green: 89%
-                blue: 71%
-                brightness: 60%
-                effect: none
+            # OPTIMIZACIÓN TÉRMICA:
+            # En lugar de tenerlo encendido siempre (calienta el mic), lo apagamos
+            # o lo dejamos al mínimo (brightness 5%).
+            # Sugiero apagarlo (turn_off) para máximo rendimiento del micro.
+            - light.turn_off: led
+            #- light.turn_on:
+            #    id: led
+            #    red: 100%
+            #    green: 89%
+            #    blue: 71%
+            #    brightness: 60%
+            #    effect: none
           else:
             - if:
                 condition:
@@ -190,7 +208,7 @@ script:
                       red: 0%
                       green: 100%
                       blue: 100%
-                      brightness: 60%
+                      brightness: 10%
                       effect: none
                 else:
                   - light.turn_off: led
